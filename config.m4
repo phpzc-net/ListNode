@@ -7,9 +7,9 @@ dnl without editing.
 
 dnl If your extension references something external, use with:
 
-dnl PHP_ARG_WITH(ListNode, for ListNode support,
-dnl Make sure that the comment is aligned:
-dnl [  --with-ListNode             Include ListNode support])
+PHP_ARG_WITH(ListNode, for ListNode support,
+Make sure that the comment is aligned:
+[  --with-ListNode             Include ListNode support])
 
 dnl Otherwise use enable:
 

@@ -67,5 +67,5 @@ if test "$PHP_LISTNODE" != "no"; then
   dnl
   dnl PHP_SUBST(LISTNODE_SHARED_LIBADD)
 
-  PHP_NEW_EXTENSION(ListNode, ListNode.c, $ext_shared)
+  PHP_NEW_EXTENSION(ListNode, ListNode.c CListNode.h CListNode.cpp,$ext_shared)
 fi

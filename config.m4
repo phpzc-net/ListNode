@@ -17,7 +17,15 @@ dnl PHP_ARG_ENABLE(ListNode, whether to enable ListNode support,
 dnl Make sure that the comment is aligned:
 dnl [  --enable-ListNode           Enable ListNode support])
 
+
 if test "$PHP_LISTNODE" != "no"; then
+  dnl 使用C++编写扩展 首先编写m4文件
+  PHP_REQUIRE_CXX()
+
+  dnl 添加C++标准库文件
+  PHP_ADD_LIBRARY(stdc++,"","")
+
+
   dnl Write more examples of tests here...
 
   dnl # --with-ListNode -> check with-path

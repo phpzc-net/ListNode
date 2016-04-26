@@ -21,11 +21,14 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
+extern "C" {
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_ListNode.h"
+};
+
+#include "CListNode.h"
 
 /* If you declare any globals in php_ListNode.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(ListNode)

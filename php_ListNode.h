@@ -34,10 +34,12 @@ extern zend_module_entry ListNode_module_entry;
 #	define PHP_LISTNODE_API
 #endif
 
+//使用C++ 需要在这里添加 声明 如果使用ZTS
+extern "C" {
 #ifdef ZTS
 #include "TSRM.h"
 #endif
-
+};
 /* 
   	Declare any global variables you may need between the BEGIN
 	and END macros here:     

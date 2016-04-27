@@ -5,12 +5,8 @@
 #ifndef LISTNODE_CLISTNODE_H
 #define LISTNODE_CLISTNODE_H
 
-extern "C" {
-#include "php.h"
-};
 
 typedef struct list_node{
-    zval *value;
     list_node *prev;
     list_node *next;
 }list_node;
@@ -20,13 +16,7 @@ public:
 
     static CListNode* create();
 
-    int add_head(zval *value);
 
-    int add_tail(zval *value);
-
-    int del_index(int index);
-
-    int fetch_index(int index,zval **retval);
 
     int get_length() const;
 private:

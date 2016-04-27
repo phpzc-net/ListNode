@@ -67,5 +67,7 @@ if test "$PHP_LISTNODE" != "no"; then
   dnl
   dnl PHP_SUBST(LISTNODE_SHARED_LIBADD)
 
+  dnl 设置C++编译参数
+  CXXFLAGS="${CXXFLAGS} -std=c++11"
   PHP_NEW_EXTENSION(ListNode, ListNode.cc CListNode.cc,$ext_shared)
 fi

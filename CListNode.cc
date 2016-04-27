@@ -8,7 +8,7 @@ using namespace std;
 
 CListNode* CListNode::create()
 {
-    return nullptr;
+    return 0;
 }
 
 

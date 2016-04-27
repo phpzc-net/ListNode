@@ -6,17 +6,17 @@
 #include <iostream>
 using namespace std;
 
-static CListNode* CListNode::create()
+CListNode* CListNode::create()
 {
     return nullptr;
 }
 
-int CListNode::add_head(zval *value)
+int CListNode::add_head(int value)
 {
     return 0;
 }
 
-int CListNode::add_tail(zval *value)
+int CListNode::add_tail(int value)
 {
     return 0;
 }
@@ -27,7 +27,7 @@ int CListNode::del_index(int index)
     return 0;
 }
 
-int CListNode::fetch_index(int index,zval **retval)
+int CListNode::fetch_index(int index, int& value)
 {
     return 0;
 }

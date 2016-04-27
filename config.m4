@@ -23,7 +23,7 @@ if test "$PHP_LISTNODE" != "no"; then
   PHP_REQUIRE_CXX()
 
   dnl 添加C++标准库文件
-  PHP_ADD_LIBRARY(stdc++,"","")
+  PHP_ADD_LIBRARY(stdc++)
 
 
   dnl Write more examples of tests here...
@@ -67,5 +67,5 @@ if test "$PHP_LISTNODE" != "no"; then
   dnl
   dnl PHP_SUBST(LISTNODE_SHARED_LIBADD)
 
-  PHP_NEW_EXTENSION(ListNode, ListNode.c CListNode.h CListNode.cpp,$ext_shared)
+  PHP_NEW_EXTENSION(ListNode, ListNode.cc CListNode.cc,$ext_shared)
 fi

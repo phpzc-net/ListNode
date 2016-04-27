@@ -7,6 +7,7 @@
 
 
 typedef struct list_node{
+    int value;
     list_node *prev;
     list_node *next;
 }list_node;
@@ -16,7 +17,9 @@ public:
 
     static CListNode* create();
 
+    int add_value(int val);
 
+    int fetch_index(int index,int &data);
 
     int get_length() const;
 private:

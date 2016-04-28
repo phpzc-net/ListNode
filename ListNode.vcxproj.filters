@@ -14,4 +14,33 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CListNode.cc">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ListNode.cc">
+      <Filter>头文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CListNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="php_ListNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt">
+      <Filter>头文件</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config.m4">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="README.md">
+      <Filter>头文件</Filter>
+    </None>
+  </ItemGroup>
 </Project>

@@ -86,18 +86,65 @@ static void php_ListNode_init_globals(zend_ListNode_globals *ListNode_globals)
 */
 /* }}} */
 
-zend_class_entry *listnode_ce;
+zend_object_handlers ListNode_object_handlers;
 
-ZEND_METHOD(ListNode, __construct)
+struct ListNode_object{
+    zend_object std;
+    CListNode *listnode;
+};
+
+
+zend_class_entry* listnode_ce;
+
+PHP_METHOD(ListNode,__construct)
 {
-
+    CListNode* ln = CListNode::create();
+    zval* thisptr = getThis();
+    ListNode_object* ln_obj = (ListNode_object*) zend_object_store_get_object(thisptr TSRMLS_CC);
+    ln_obj->listnode = ln;
+    
+    //在与c++配合中 定义类属性 在 __construct 中定义
+    zend_update_property_string(listnode_ce,thisptr,"p1",strlen("p1"),"bbb" TSRMLS_CC);
+    zend_declare_class_constant_string(listnode_ce,"AAA",strlen("AAA"),"bbb" TSRMLS_CC);
 }
-
 static zend_function_entry listnode_methods[]=
 {
-	ZEND_ME(ListNode,__construct,NULL,ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-	{NULL, NULL, NULL}
+    ZEND_ME(ListNode,__construct,NULL,ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+  {NULL,NULL,NULL}  
 };
+
+
+
+
+void free_listnode_object(void* obj TSRMLS_DC)
+{
+    ListNode_object* listnode_obj = (ListNode_object*)obj;
+    delete listnode_obj->listnode;
+    
+    zend_hash_destroy(listnode_obj->std.properties);
+    FREE_HASHTABLE(listnode_obj->std.properties);
+    
+    efree(listnode_obj);
+}
+
+zend_object_value create_listnode_object(zend_class_entry* class_entry TSRMLS_DC)
+{
+    //zval *tmp;
+    zend_object_value retval;
+    zval *tmp;
+    ListNode_object* listnode_object=(ListNode_object*)emalloc(sizeof(ListNode_object));
+    memset(listnode_object,0,sizeof(ListNode_object));
+    listnode_object->std.ce = class_entry;
+    
+    ALLOC_HASHTABLE(listnode_object->std.properties);
+    zend_hash_init(listnode_object->std.properties, 0, NULL, ZVAL_PTR_DTOR, 0);//不持久 ZVAL_PTR_DTOR销毁函数  引用计数减一 自动销毁
+    zend_hash_copy(listnode_object->std.properties, &class_entry->properties_info,(copy_ctor_func_t)zval_add_ref, (void *)&tmp, sizeof(zval *));// &class_entry->properties_info 即为 zend_declare_property系列函数 定义类属性时修改的hashtable 这里从他复制初值 倒数第2个参数为兼容之前的 这里用NULL 
+
+    retval.handle = zend_objects_store_put(listnode_object, NULL,free_listnode_object, NULL TSRMLS_CC);
+    retval.handlers = &ListNode_object_handlers;
+    
+    return retval;
+}
 
 /* {{{ PHP_MINIT_FUNCTION
  */
@@ -106,12 +153,19 @@ PHP_MINIT_FUNCTION(ListNode)
 	/* If you have INI entries, uncomment these lines 
 	REGISTER_INI_ENTRIES();
 	*/
-	zend_class_entry _listnode_ce;
-	INIT_CLASS_ENTRY(_listnode_ce, "ListNode", listnode_methods);
-
-	listnode_ce = zend_register_internal_class(&_listnode_ce TSRMLS_CC);
-	zend_declare_property_string(listnode_ce, "node_num", sizeof("node_num"), NULL, ZEND_ACC_PUBLIC TSRMLS_CC);
-	return SUCCESS;
+	    zend_class_entry ce;
+    INIT_CLASS_ENTRY(ce,"ListNode",listnode_methods);
+    listnode_ce = zend_register_internal_class(&ce TSRMLS_CC);
+    
+    listnode_ce->create_object = create_listnode_object;
+    //初始化 ListNode_object_handlers
+    memcpy(&ListNode_object_handlers,zend_get_std_object_handlers(),sizeof(zend_object_handlers));
+    ListNode_object_handlers.clone_obj = NULL;
+    
+    
+    //zend_declare_property_string(listnode_ce,"p1",strlen("p1"),"aaa",ZEND_ACC_PUBLIC TSRMLS_CC);
+    //zend_declare_class_constant_string(listnode_ce,"LISTNODE_VER",strlen("LISTNODE_VER"),"1.0" TSRMLS_CC);
+    return SUCCESS;
 }
 /* }}} */
 

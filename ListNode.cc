@@ -26,7 +26,7 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_ListNode.h"
-#include "zend_object.h"
+
 
 #include "CListNode.h"
 

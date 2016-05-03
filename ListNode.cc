@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2016 The PHP Group                                |
+  | Copyright (c) 1997-2015 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -27,9 +27,7 @@
 #include "ext/standard/info.h"
 #include "php_ListNode.h"
 
-
 #include "CListNode.h"
-
 /* If you declare any globals in php_ListNode.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(ListNode)
 */
@@ -56,16 +54,16 @@ PHP_INI_END()
    Return a string to confirm that the module is compiled in */
 PHP_FUNCTION(confirm_ListNode_compiled)
 {
-	char *arg = NULL;
-	int arg_len, len;
-	char *strg;
+  char *arg = NULL;
+  int arg_len, len;
+  char *strg;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
-		return;
-	}
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
+    return;
+  }
 
-	len = spprintf(&strg, 0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "ListNode", arg);
-	RETURN_STRINGL(strg, len, 0);
+  len = spprintf(&strg, 0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "ListNode", arg);
+  RETURN_STRINGL(strg, len, 0);
 }
 /* }}} */
 /* The previous line is meant for vim and emacs, so it can correctly fold and 
@@ -80,12 +78,11 @@ PHP_FUNCTION(confirm_ListNode_compiled)
 /* Uncomment this function if you have INI entries
 static void php_ListNode_init_globals(zend_ListNode_globals *ListNode_globals)
 {
-	ListNode_globals->global_value = 0;
-	ListNode_globals->global_string = NULL;
+  ListNode_globals->global_value = 0;
+  ListNode_globals->global_string = NULL;
 }
 */
 /* }}} */
-
 zend_object_handlers ListNode_object_handlers;
 
 struct ListNode_object{
@@ -98,7 +95,7 @@ zend_class_entry* listnode_ce;
 
 PHP_METHOD(ListNode,__construct)
 {
-    CListNode* ln = CListNode::create();
+    CListNode* ln = new CListNode;
     zval* thisptr = getThis();
     ListNode_object* ln_obj = (ListNode_object*) zend_object_store_get_object(thisptr TSRMLS_CC);
     ln_obj->listnode = ln;
@@ -106,10 +103,68 @@ PHP_METHOD(ListNode,__construct)
     //在与c++配合中 定义类属性 在 __construct 中定义
     zend_update_property_string(listnode_ce,thisptr,"p1",strlen("p1"),"bbb" TSRMLS_CC);
     zend_declare_class_constant_string(listnode_ce,"AAA",strlen("AAA"),"bbb" TSRMLS_CC);
+
+  php_printf("---CListNode -- %d\n", ln);
+}
+
+
+PHP_METHOD(ListNode, add_value)
+{
+  
+  zval* value;
+  int ret;
+  zval* thisptr = getThis();
+  ListNode_object* ln_obj = (ListNode_object*)zend_object_store_get_object(thisptr TSRMLS_CC);
+  CListNode *cListNode = ln_obj->listnode;
+  php_printf("---CListNode -- %d\n", cListNode);
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &value) == FAILURE)
+  {
+    WRONG_PARAM_COUNT;
+  }
+  if (cListNode != nullptr){
+    
+    if ((ret = cListNode->add_value(value)) != 0){
+      php_error(E_ERROR, "add value error\n");
+      return;
+    }
+
+    if (IS_LONG == Z_TYPE(*value)){
+      php_printf("pre -  %d\n", Z_LVAL_P(value));
+    }
+
+    php_printf("ret %d\n", ret);
+    RETURN_LONG(ret);
+    
+  }
+  else{
+    php_printf("nullptr %d\n", value);
+  }
+  
+}
+PHP_METHOD(ListNode, fetch_index)
+{
+  long index;
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &index) == FAILURE)
+  {
+    WRONG_PARAM_COUNT;
+  }
+  zval* thisptr = getThis();
+  ListNode_object* ln_obj = (ListNode_object*)zend_object_store_get_object(thisptr TSRMLS_CC);
+  CListNode *cListNode = ln_obj->listnode;
+  zval* node_ret = cListNode->fetch_index(index);
+  if (node_ret == nullptr){
+    RETURN_NULL();
+  }
+  else{
+    RETURN_ZVAL_FAST(node_ret);
+  }
+  
 }
 static zend_function_entry listnode_methods[]=
 {
     ZEND_ME(ListNode,__construct,NULL,ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+  ZEND_ME(ListNode, add_value, NULL, ZEND_ACC_PUBLIC)
+  ZEND_ME(ListNode, fetch_index, NULL, ZEND_ACC_PUBLIC)
   {NULL,NULL,NULL}  
 };
 
@@ -118,6 +173,8 @@ static zend_function_entry listnode_methods[]=
 
 void free_listnode_object(void* obj TSRMLS_DC)
 {
+  php_printf("free -- CListNode Destory\n");
+
     ListNode_object* listnode_obj = (ListNode_object*)obj;
     delete listnode_obj->listnode;
     
@@ -138,7 +195,7 @@ zend_object_value create_listnode_object(zend_class_entry* class_entry TSRMLS_DC
     
     ALLOC_HASHTABLE(listnode_object->std.properties);
     zend_hash_init(listnode_object->std.properties, 0, NULL, ZVAL_PTR_DTOR, 0);//不持久 ZVAL_PTR_DTOR销毁函数  引用计数减一 自动销毁
-    zend_hash_copy(listnode_object->std.properties, &class_entry->properties_info,(copy_ctor_func_t)zval_add_ref, (void *)&tmp, sizeof(zval *));// &class_entry->properties_info 即为 zend_declare_property系列函数 定义类属性时修改的hashtable 这里从他复制初值 倒数第2个参数为兼容之前的 这里用NULL 
+    zend_hash_copy(listnode_object->std.properties, &class_entry->properties_info,(copy_ctor_func_t)zval_add_ref, NULL, sizeof(zval *));// &class_entry->properties_info 即为 zend_declare_property系列函数 定义类属性时修改的hashtable 这里从他复制初值 倒数第2个参数为兼容之前的 这里用NULL 
 
     retval.handle = zend_objects_store_put(listnode_object, NULL,free_listnode_object, NULL TSRMLS_CC);
     retval.handlers = &ListNode_object_handlers;
@@ -150,10 +207,10 @@ zend_object_value create_listnode_object(zend_class_entry* class_entry TSRMLS_DC
  */
 PHP_MINIT_FUNCTION(ListNode)
 {
-	/* If you have INI entries, uncomment these lines 
-	REGISTER_INI_ENTRIES();
-	*/
-	    zend_class_entry ce;
+  /* If you have INI entries, uncomment these lines 
+  REGISTER_INI_ENTRIES();
+  */
+    zend_class_entry ce;
     INIT_CLASS_ENTRY(ce,"ListNode",listnode_methods);
     listnode_ce = zend_register_internal_class(&ce TSRMLS_CC);
     
@@ -165,7 +222,8 @@ PHP_MINIT_FUNCTION(ListNode)
     
     //zend_declare_property_string(listnode_ce,"p1",strlen("p1"),"aaa",ZEND_ACC_PUBLIC TSRMLS_CC);
     //zend_declare_class_constant_string(listnode_ce,"LISTNODE_VER",strlen("LISTNODE_VER"),"1.0" TSRMLS_CC);
-    return SUCCESS;
+    
+  return SUCCESS;
 }
 /* }}} */
 
@@ -173,10 +231,10 @@ PHP_MINIT_FUNCTION(ListNode)
  */
 PHP_MSHUTDOWN_FUNCTION(ListNode)
 {
-	/* uncomment this line if you have INI entries
-	UNREGISTER_INI_ENTRIES();
-	*/
-	return SUCCESS;
+  /* uncomment this line if you have INI entries
+  UNREGISTER_INI_ENTRIES();
+  */
+  return SUCCESS;
 }
 /* }}} */
 
@@ -185,7 +243,7 @@ PHP_MSHUTDOWN_FUNCTION(ListNode)
  */
 PHP_RINIT_FUNCTION(ListNode)
 {
-	return SUCCESS;
+  return SUCCESS;
 }
 /* }}} */
 
@@ -194,7 +252,7 @@ PHP_RINIT_FUNCTION(ListNode)
  */
 PHP_RSHUTDOWN_FUNCTION(ListNode)
 {
-	return SUCCESS;
+  return SUCCESS;
 }
 /* }}} */
 
@@ -202,13 +260,13 @@ PHP_RSHUTDOWN_FUNCTION(ListNode)
  */
 PHP_MINFO_FUNCTION(ListNode)
 {
-	php_info_print_table_start();
-	php_info_print_table_header(2, "ListNode support", "enabled");
-	php_info_print_table_end();
+  php_info_print_table_start();
+  php_info_print_table_header(2, "ListNode support", "enabled");
+  php_info_print_table_end();
 
-	/* Remove comments if you have entries in php.ini
-	DISPLAY_INI_ENTRIES();
-	*/
+  /* Remove comments if you have entries in php.ini
+  DISPLAY_INI_ENTRIES();
+  */
 }
 /* }}} */
 
@@ -217,24 +275,24 @@ PHP_MINFO_FUNCTION(ListNode)
  * Every user visible function must have an entry in ListNode_functions[].
  */
 const zend_function_entry ListNode_functions[] = {
-	PHP_FE(confirm_ListNode_compiled,	NULL)		/* For testing, remove later. */
-	PHP_FE_END	/* Must be the last line in ListNode_functions[] */
+  PHP_FE(confirm_ListNode_compiled, NULL)   /* For testing, remove later. */
+  PHP_FE_END  /* Must be the last line in ListNode_functions[] */
 };
 /* }}} */
 
 /* {{{ ListNode_module_entry
  */
 zend_module_entry ListNode_module_entry = {
-	STANDARD_MODULE_HEADER,
-	"ListNode",
-	ListNode_functions,
-	PHP_MINIT(ListNode),
-	PHP_MSHUTDOWN(ListNode),
-	PHP_RINIT(ListNode),		/* Replace with NULL if there's nothing to do at request start */
-	PHP_RSHUTDOWN(ListNode),	/* Replace with NULL if there's nothing to do at request end */
-	PHP_MINFO(ListNode),
-	PHP_LISTNODE_VERSION,
-	STANDARD_MODULE_PROPERTIES
+  STANDARD_MODULE_HEADER,
+  "ListNode",
+  ListNode_functions,
+  PHP_MINIT(ListNode),
+  PHP_MSHUTDOWN(ListNode),
+  PHP_RINIT(ListNode),    /* Replace with NULL if there's nothing to do at request start */
+  PHP_RSHUTDOWN(ListNode),  /* Replace with NULL if there's nothing to do at request end */
+  PHP_MINFO(ListNode),
+  PHP_LISTNODE_VERSION,
+  STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
 

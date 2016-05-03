@@ -1,17 +1,51 @@
 //
 // Created by 张成 on 16/4/26.
 //
-
 #include "CListNode.h"
 #include <cstddef>
 #include <iostream>
+#include <memory>
+#include "php.h"
+
 using namespace std;
+
+CListNode::CListNode()
+{
+    this->size = 0;
+    this->head = nullptr;
+    this->tail = nullptr;
+}
+
+CListNode::~CListNode()
+{
+    cout << "CListNode Destory" << endl;
+    
+    if (this->head != nullptr){
+        list_node *current = this->head;
+        list_node *pNext = head->next;
+
+        while (current != nullptr)
+        {
+
+            cout << "CListNode Destory -- node->" << Z_STRVAL_P(current->value) << endl;
+            //zval_dtor(current->value);
+            efree(current);
+            current = nullptr;
+            if (pNext){
+                current = pNext;
+                pNext = current->next;
+            }
+
+            cout << "CListNode Destory -- while" << endl;
+        }
+
+    }
+    
+}
 
 CListNode* CListNode::create()
 {
     CListNode* obj = new CListNode;
-    obj->head = nullptr;
-    obj->tail = nullptr;
     return obj;
 }
 
@@ -21,49 +55,55 @@ int CListNode::get_length() const
     return this->size;
 }
 
-int CListNode::add_value(int val) {
-
-    list_node* node = (list_node*)malloc(sizeof(list_node));
-    if(node == nullptr){
+int CListNode::add_value(zval* val) {
+    
+    list_node* node = (list_node*)emalloc(sizeof(list_node));
+    if (node == nullptr){
         return -1;
     }
-    node->value = val;
+    zval *new_val;
+    MAKE_STD_ZVAL(new_val);
+    *new_val = *val;
+    zval_copy_ctor(new_val);
+    convert_to_string(new_val);//转成string
+    
+    node->value = new_val;
     node->next = nullptr;
 
-    if(this->head == nullptr){
+    if (this->head == nullptr){
         head = node;
-        node->prev = nullptr;
+        head->prev = nullptr;
         tail = node;
-    }else{
+    }
+    else{
         tail->next = node;
         node->prev = tail;
         tail = node;
     }
-
+    
     this->size = this->size + 1;
-
+    cout << "CListNode Add" << endl;
     return 0;
 }
 
 // fetch出指定 索引节点的值
-int CListNode::fetch_index(int index, int &data) {
+zval* CListNode::fetch_index(int index) {
 
-    if(index <= 0 || index > this->size){
-        return 0;
+    if (index <= 0 || index > this->size){
+        return nullptr;
     }
 
     list_node* pHead = head;
-    if(pHead != nullptr){
-        while(index > 1){
+    if (pHead != nullptr){
+        while (index > 1){
             pHead = pHead->next;
             --index;
         }
 
-        data = pHead->value;
-    }else{
-        return 0;
+        return pHead->value;
     }
-
-    return 1;
+    else{
+        return nullptr;
+    }
 
 }

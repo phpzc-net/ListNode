@@ -104,7 +104,6 @@ PHP_METHOD(ListNode,__construct)
     zend_update_property_string(listnode_ce,thisptr,"p1",strlen("p1"),"bbb" TSRMLS_CC);
     zend_declare_class_constant_string(listnode_ce,"AAA",strlen("AAA"),"bbb" TSRMLS_CC);
 
-  php_printf("---CListNode -- %d\n", ln);
 }
 
 
@@ -116,7 +115,7 @@ PHP_METHOD(ListNode, add_value)
   zval* thisptr = getThis();
   ListNode_object* ln_obj = (ListNode_object*)zend_object_store_get_object(thisptr TSRMLS_CC);
   CListNode *cListNode = ln_obj->listnode;
-  php_printf("---CListNode -- %d\n", cListNode);
+  
   if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &value) == FAILURE)
   {
     WRONG_PARAM_COUNT;
@@ -128,16 +127,11 @@ PHP_METHOD(ListNode, add_value)
       return;
     }
 
-    if (IS_LONG == Z_TYPE(*value)){
-      php_printf("pre -  %d\n", Z_LVAL_P(value));
-    }
-
-    php_printf("ret %d\n", ret);
     RETURN_LONG(ret);
     
   }
   else{
-    php_printf("nullptr %d\n", value);
+    php_error(E_ERROR,"cpp obj is nullptr\n");
   }
   
 }
@@ -160,11 +154,33 @@ PHP_METHOD(ListNode, fetch_index)
   }
   
 }
+
+PHP_METHOD(ListNode, del_value)
+{
+  long index;
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &index) == FAILURE)
+  {
+    WRONG_PARAM_COUNT;
+  }
+  zval* thisptr = getThis();
+  ListNode_object* ln_obj = (ListNode_object*)zend_object_store_get_object(thisptr TSRMLS_CC);
+  CListNode *cListNode = ln_obj->listnode;
+  int ret = cListNode->del_value(index);
+
+  if (ret == 0){
+    RETURN_BOOL(1);
+  }
+  else{
+    RETURN_BOOL(0);
+  }
+}
+
 static zend_function_entry listnode_methods[]=
 {
     ZEND_ME(ListNode,__construct,NULL,ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
   ZEND_ME(ListNode, add_value, NULL, ZEND_ACC_PUBLIC)
   ZEND_ME(ListNode, fetch_index, NULL, ZEND_ACC_PUBLIC)
+  ZEND_ME(ListNode, del_value, NULL, ZEND_ACC_PUBLIC)
   {NULL,NULL,NULL}  
 };
 
@@ -173,7 +189,7 @@ static zend_function_entry listnode_methods[]=
 
 void free_listnode_object(void* obj TSRMLS_DC)
 {
-  php_printf("free -- CListNode Destory\n");
+    //php_printf("free -- CListNode Destory\n");
 
     ListNode_object* listnode_obj = (ListNode_object*)obj;
     delete listnode_obj->listnode;

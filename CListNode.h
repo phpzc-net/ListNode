@@ -15,7 +15,7 @@ public:
     static CListNode* create();
 
     int add_value(zval *val);
-
+	int del_value(int index);
     zval* fetch_index(int index);
 
     int get_length() const;

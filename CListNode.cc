@@ -18,7 +18,6 @@ CListNode::CListNode()
 
 CListNode::~CListNode()
 {
-    cout << "CListNode Destory" << endl;
     
     if (this->head != nullptr){
         list_node *current = this->head;
@@ -26,17 +25,12 @@ CListNode::~CListNode()
 
         while (current != nullptr)
         {
-
-            cout << "CListNode Destory -- node->" << Z_STRVAL_P(current->value) << endl;
-            //zval_dtor(current->value);
             efree(current);
             current = nullptr;
             if (pNext){
                 current = pNext;
                 pNext = current->next;
             }
-
-            cout << "CListNode Destory -- while" << endl;
         }
 
     }
@@ -64,8 +58,8 @@ int CListNode::add_value(zval* val) {
     zval *new_val;
     MAKE_STD_ZVAL(new_val);
     *new_val = *val;
-    zval_copy_ctor(new_val);
-    convert_to_string(new_val);//转成string
+    zval_copy_ctor(new_val);//如果是非标量 添加引用计数 
+    //convert_to_string(new_val);//转成string
     
     node->value = new_val;
     node->next = nullptr;
@@ -82,7 +76,7 @@ int CListNode::add_value(zval* val) {
     }
     
     this->size = this->size + 1;
-    cout << "CListNode Add" << endl;
+
     return 0;
 }
 
@@ -106,4 +100,54 @@ zval* CListNode::fetch_index(int index) {
         return nullptr;
     }
 
+}
+
+int CListNode::del_value(int index)
+{
+    if (index <= 0 || index > this->size)
+    {
+        return -1;
+    }
+
+    list_node* pCurrent = head;
+    list_node* tmp = nullptr;
+
+    if (pCurrent != nullptr){
+        int i = 1;
+        if (i == index){
+
+            head = head->next;
+            head->prev = nullptr;
+            efree(pCurrent);
+            --this->size;
+            return 0;
+        }
+        else{
+            while (pCurrent != nullptr){
+                ++i;
+                tmp = pCurrent;
+                pCurrent = pCurrent->next;
+                if (i == index && pCurrent != nullptr){
+                    tmp->next = pCurrent->next;
+                    if (pCurrent->next != nullptr){
+                        pCurrent->next->prev = tmp;
+                    }
+                    else{
+                        tail = tmp;
+                    }
+                    zval_dtor(pCurrent->value);
+                    efree(pCurrent);
+                    --this->size;
+                    return 0;
+                }
+                
+            }
+
+            return -1;
+        }
+
+    }
+    else{
+        return -1;
+    }
 }

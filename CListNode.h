@@ -1,35 +1,28 @@
-//
-// Created by 张成 on 16/4/26.
-//
-
-#ifndef LISTNODE_CLISTNODE_H
-#define LISTNODE_CLISTNODE_H
-
-
+#ifndef _CLISTNODE_H_
+#define _CLISTNODE_H_
+#include "php.h"
 typedef struct list_node{
-    int value;
+    zval* value;
+    //int value;
     list_node *prev;
     list_node *next;
 }list_node;
 
 class CListNode {
 public:
-
+    CListNode();
+    ~CListNode();
     static CListNode* create();
 
-    int add_value(int val);
-
-    int fetch_index(int index,int &data);
+    int add_value(zval *val);
+	int del_value(int index);
+    zval* fetch_index(int index);
 
     int get_length() const;
 private:
 
-    CListNode(){};
-    ~CListNode(){};
     int size;
     list_node *head;
     list_node *tail;
 };
-
-
-#endif //LISTNODE_CLISTNODE_H
+#endif
